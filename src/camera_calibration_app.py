@@ -1,5 +1,5 @@
+import sys
 from flask import Flask, render_template_string, request
-
 from CamContext import *
 
 class CameraCalibrationApp:
@@ -7,19 +7,26 @@ class CameraCalibrationApp:
         self.app = Flask(__name__)
         self.setup_routes()
         self.cam_context = CamContext()
+        
+        self.cameras = self.get_cams()
 
     def setup_routes(self):
         @self.app.route('/')
         def index():
-            return self.render_template(result=None)
+            return self.render_start_page()
 
-        @self.app.route('/calibrate', methods=['POST'])
-        def calibrate():
-            result = self.camera_calibration()  # Call the calibration function
-            return self.render_template(result=result)
+        @self.app.route('/start_calibration', methods=['POST'])
+        def start_calibration():
+            return self.render_camera_table()
 
-    def render_template(self, result):
-        # HTML template with a heading and a button
+        @self.app.route('/process/<serial_number>', methods=['POST'])
+        def process(serial_number):
+            device_name = self.cameras.get(serial_number)
+            result = f"Camera Serial Number: {serial_number}, Device Name: {device_name} :)"
+            return self.render_camera_table(result=result)
+
+    def render_start_page(self):
+        # HTML template for the start page
         html_template = '''
         <!doctype html>
         <html lang="en">
@@ -30,32 +37,65 @@ class CameraCalibrationApp:
         </head>
         <body>
             <h1>Camera Calibration</h1>
-            <form method="POST" action="/calibrate">
+            <form method="POST" action="/start_calibration">
                 <button type="submit">Start Calibration</button>
             </form>
+        </body>
+        </html>
+        '''
+        return render_template_string(html_template)
+
+    def render_camera_table(self, result=None):
+        # HTML template with a table and buttons
+        html_template = '''
+        <!doctype html>
+        <html lang="en">
+        <head>
+            <meta charset="UTF-8">
+            <meta name="viewport" content="width=device-width, initial-scale=1.0">
+            <title>Camera List</title>
+            <style>
+                table { width: 50%; margin: 20px auto; border-collapse: collapse; }
+                th, td { padding: 10px; border: 1px solid #ddd; text-align: center; }
+                th { background-color: #f2f2f2; }
+            </style>
+        </head>
+        <body>
+            <h1>Camera List</h1>
+            <table>
+                <tr>
+                    <th>Serial Number</th>
+                    <th>Device Name</th>
+                    <th>Action</th>
+                </tr>
+                {% for serial, device in cameras.items() %}
+                <tr>
+                    <td>{{ serial }}</td>
+                    <td>{{ device }}</td>
+                    <td>
+                        <form method="POST" action="/process/{{ serial }}">
+                            <button type="submit">Start Calibration</button>
+                        </form>
+                    </td>
+                </tr>
+                {% endfor %}
+            </table>
             {% if result %}
                 <h2>Result: {{ result }}</h2>
             {% endif %}
         </body>
         </html>
         '''
-        return render_template_string(html_template, result=result)
+        return render_template_string(html_template, cameras=self.cameras, result=result)
 
-    def camera_calibration(self):
-        # Here you would add your actual calibration logic
-        # For now, we simulate with a simple message
-        # return "Camera calibration completed successfully!"
+    def get_cams(self):
         see_cams = self.cam_context.get_seecam()
         
         if see_cams == None:
-            return "!!!! No cameras Found !!!!"
+            print("!!!!!!!!! No Cameras Connected !!!!!!!!!!")
+            sys.exit()
         else:
-            for cam in see_cams:
-                print(cam.serial_number)
-                print(cam.camera_index)
-            return f"{len(see_cams)} Cameras Found"
-        
-        
+            return {cam.serial_number:cam.camera_index for cam in see_cams}
 
     def run(self):
         self.app.run(host='0.0.0.0', port=5000)
