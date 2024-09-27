@@ -60,9 +60,9 @@ class CamCalibrator(CamContext):
                         cam_dev = int(cam_dev)
 
                         # Check if the entered SlNo is in the dictionary
-                        if cam_dev in ob.see_cam_dict:
+                        if cam_dev in self.see_cam_dict:
                             # Get the camera index from the dictionary
-                            cam_dev = ob.see_cam_dict[cam_dev][2]
+                            cam_dev = self.see_cam_dict[cam_dev][2]
 
                             # Run the web app to display the camera feed
                             web_app = WebcamApp(cam_dev)
