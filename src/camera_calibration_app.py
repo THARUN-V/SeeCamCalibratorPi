@@ -10,6 +10,7 @@ class CameraCalibrationApp:
         self.cam_context = CamContext()
         
         self.cameras = self.get_cams()  # Get available cameras
+        self.active_camera = None  # Track the active camera
         self.setup_routes()  # Setup routes for the app
 
     def setup_routes(self):
@@ -83,6 +84,7 @@ class CameraCalibrationApp:
                 table { width: 50%; margin: 20px auto; border-collapse: collapse; }
                 th, td { padding: 10px; border: 1px solid #ddd; text-align: center; }
                 th { background-color: #f2f2f2; }
+                button:disabled { background-color: #ccc; }
             </style>
         </head>
         <body>
@@ -99,7 +101,7 @@ class CameraCalibrationApp:
                     <td>{{ serial }}</td>
                     <td>{{ device }}</td>
                     <td>
-                        <button onclick="startCalibration('{{ serial }}')">Start Calibration</button>
+                        <button id="btn-{{ serial }}" onclick="startCalibration('{{ serial }}')">Start Calibration</button>
                     </td>
                     <td>
                         <img id="camera-image-{{ serial }}" src="" alt="No Image" style="width: 200px; height: auto;">
@@ -109,8 +111,24 @@ class CameraCalibrationApp:
             </table>
             <script>
                 function startCalibration(serial) {
+                    // Disable all buttons
+                    const buttons = document.querySelectorAll('button');
+                    buttons.forEach(button => {
+                        button.disabled = true;  // Disable all buttons
+                    });
+
+                    // Start video feed
                     const imgElement = document.getElementById('camera-image-' + serial);
-                    imgElement.src = '/video_feed/' + serial;  // Start video feed
+                    imgElement.src = '/video_feed/' + serial;
+
+                    // Re-enable buttons after a delay (for example, 5 seconds)
+                    setTimeout(function() {
+                        // Stop the video feed by clearing the image src
+                        imgElement.src = "";
+                        buttons.forEach(button => {
+                            button.disabled = false;  // Re-enable all buttons
+                        });
+                    }, 5000);  // Change duration as needed
                 }
             </script>
         </body>

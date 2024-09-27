@@ -1,0 +1,4 @@
+src/__pycache__/
+test_codes/build
+test_codes/dist
+test_codes/*.spec
