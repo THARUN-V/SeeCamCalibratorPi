@@ -2,7 +2,7 @@ import sys
 import signal
 from prettytable import PrettyTable
 from CamContext import *
-from OpencvFlask import WebcamApp
+from OpencvFlask import *
 from CameraCalibrator import *
 
 class CamCalibrator(CamContext):
@@ -28,6 +28,10 @@ class CamCalibrator(CamContext):
         
         self.all_cameras_calibrated = False
         self.cameras_calibrated = 0
+        self.flask_app = None
+        self.flask_thread = None
+        
+        self.calib_obj = None
         
     def update_table(self):
         # Update the table with the latest camera information
@@ -65,8 +69,20 @@ class CamCalibrator(CamContext):
                             cam_dev = self.see_cam_dict[cam_dev][2]
 
                             # Run the web app to display the camera feed
-                            web_app = WebcamApp(cam_dev)
-                            web_app.run()
+                            # self.flask_app, self.flask_thread = start_webcam_app(cam_dev)
+                            
+                            if self.calib_obj == None:
+                                self.calib_obj = OpenCVCalibrationNode([ChessboardInfo(6,4,0.04)],
+                                                                      0,
+                                                                      0,
+                                                                      checkerboard_flags = cv2.CALIB_CB_FAST_CHECK,
+                                                                      max_chessboard_speed = -1.0,
+                                                                      queue_size = 1,
+                                                                      cam_index = cam_dev)
+                                
+                                # use calib_obj and get the image from queue and strem img to webpage
+                                self.flask_app, self.flask_thread = start_webcam_app(self.calib_obj)
+                            
                         else:
                             print("Invalid SlNo. Please try again.")
                     else:
@@ -81,3 +97,11 @@ if __name__ == "__main__":
     # Create an instance of the CamCalibrator and run the main method
     ob = CamCalibrator()
     ob.main()
+    
+    # try:
+    #     while ob.flask_thread.is_alive():
+    #         ob.flask_thread.join(1)  # Keep the main thread alive while Flask runs
+    # except KeyboardInterrupt:
+    #     print("Shutting down server...")
+    #     stop_webcam_app(ob.flask_app)
+    #     ob.flask_thread.join()

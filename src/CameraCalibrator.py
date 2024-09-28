@@ -835,49 +835,22 @@ class CalibrationNode(CamContext,
                  fisheye_flags = 0,
                  checkerboard_flags = 0,
                  max_chessboard_speed = -1,
-                 queue_size = 1):
+                 queue_size = 1,
+                 cam_index = 0):
         
         self._boards = boards
         self._calib_flags = flags 
         self._fisheye_calib_flags = fisheye_flags
         self._checkerboard_flags = checkerboard_flags
         self._max_chessboard_speed = max_chessboard_speed
+        self._cam_index = cam_index
         
         self.q_mono = BufferQueue(queue_size)
         
         self.c = None 
         
         self._last_display = None
-        
-        # ######### CamContext class ##############
-        # # initialize cam contex
-        # CamContext.__init__(self)
-        # # get the cameras available
-        # see_cam = self.get_seecam()
-        # # check if cameras are connected
-        # if see_cam == None:
-        #     print("!!!!!!!!!!!!!! No Cameras Detected !!!!!!!!!!!!!!!!!!")
-        #     exit()
-        # # if cameras are connected get the serial numbera and camera index
-        # serial_num , cam_idx = see_cam[0].serial_number , see_cam[0].camera_index
-        # #########################################
-        
-        # ######### param class ############
-        # # initialize parameter class and fetch the parameters
-        # GetParams.__init__(self,"CamCalibStartup.json")
-        # ##################################
-        
-        # ########## Camera Capture class ######################
-        # # initialize CameraCapture 
-        # CameraCapture.__init__(self,
-        #                        camera_index = cam_idx,
-        #                        queue_size = 1,
-        #                        resolution = self.camera_resolution,
-        #                        serial_num = serial_num)
-        # # start the camera thread
-        # self.start()
-        # #######################################################
-        
+                
         cam_cap_th = threading.Thread(target = self.queue_monocular)
         cam_cap_th.daemon = True
         cam_cap_th.start()
@@ -891,12 +864,8 @@ class CalibrationNode(CamContext,
     
     # need to modify this function to fetch image from camer capture class
     def queue_monocular(self):
-        # # self.q_mono.put(msg)
-        # while True:
-        #     image = self.get_frame()
-        #     if image is not None:
-        #         self.q_mono.put(image)
-        cap = cv2.VideoCapture("/dev/video2")
+        # cap = cv2.VideoCapture("/dev/video2")
+        cap = cv2.VideoCapture(self._cam_index)
         while cap.isOpened():
             ret , frame = cap.read()
             if ret:
@@ -928,14 +897,20 @@ class OpenCVCalibrationNode(CalibrationNode):
         CalibrationNode.__init__(self,*args,**kwargs)
         
         self.queue_display = BufferQueue(maxsize = 1)
-        self.initWindow()
+        # self.initWindow()
+        
+        cv_thread = threading.Thread(target = self.spin)
+        cv_thread.daemon = True
+        cv_thread.start()
+        
         
     def spin(self):
         
         while True:
             if self.queue_display.qsize() > 0:
                 self.image = self.queue_display.get()
-                cv2.imshow("display",self.image)
+                print("-- got image ----")
+                # cv2.imshow("display",self.image)
             else:
                 time.sleep(0.1)
             k = cv2.waitKey(6) & 0xFF
