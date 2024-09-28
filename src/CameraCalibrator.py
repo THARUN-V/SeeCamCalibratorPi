@@ -909,7 +909,6 @@ class OpenCVCalibrationNode(CalibrationNode):
         while True:
             if self.queue_display.qsize() > 0:
                 self.image = self.queue_display.get()
-                print("-- got image ----")
                 # cv2.imshow("display",self.image)
             else:
                 time.sleep(0.1)

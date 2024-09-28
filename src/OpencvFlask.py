@@ -5,35 +5,32 @@ from flask import Flask, Response, request, jsonify
 
 # Camera class to handle video streaming
 class Camera:
-    # def __init__(self, index=0):
     def __init__(self, calib_obj):
-        # self.camera = cv2.VideoCapture(index)
         self.encode_param = [int(cv2.IMWRITE_JPEG_QUALITY), 50]  # JPEG compression quality (0-100)
-        # if not self.camera.isOpened():
-        #     raise ValueError(f"Camera with index {index} not found.")
         self._calib_obj = calib_obj
     
     def generate_frames(self):
-        # while True:
-        #     success, frame = self.camera.read()
-        #     if not success:
-        #         break
-        #     else:
-        #         ret, buffer = cv2.imencode('.jpg', frame, self.encode_param)
-        #         frame = buffer.tobytes()
-        #         yield (b'--frame\r\n'
-        #                b'Content-Type: image/jpeg\r\n\r\n' + frame + b'\r\n')
         while True:
             if self._calib_obj.queue_display.qsize() > 0:
                 frame = self._calib_obj.queue_display.get()
+                
+                # params for text on image #
+                position = (10,30)
+                font = cv2.FONT_HERSHEY_SIMPLEX
+                font_scale = 1
+                color = (0,0,255)
+                thickness = 2
+                text = f"{frame.shape[1]}X{frame.shape[0]}"
+                
+                cv2.putText(frame,text,position,font,font_scale,color,thickness,cv2.LINE_AA)
+                ############################
+                
                 ret, buffer = cv2.imencode('.jpg', frame, self.encode_param)
                 frame = buffer.tobytes()
                 yield (b'--frame\r\n'
                        b'Content-Type: image/jpeg\r\n\r\n' + frame + b'\r\n')
                 
     def __del__(self):
-        # if self.camera.isOpened():
-        #     self.camera.release()
         pass
 
 # WebcamApp class to handle Flask app and routes
