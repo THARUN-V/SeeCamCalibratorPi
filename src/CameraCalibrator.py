@@ -18,8 +18,6 @@ try:
 except ImportError:
     from Queue import Queue
 
-from CamCapture import CameraCapture
-from CamContext import CamContext
 from GetParams import GetParams
 
 # Supported camera models
@@ -826,9 +824,7 @@ class ConsumerThread(threading.Thread):
             m = self.queue.get()
             self.function(m)
             
-class CalibrationNode(CamContext,
-                      CameraCapture,
-                      GetParams):
+class CalibrationNode(GetParams):
     def __init__(self,
                  boards,
                  flags = 0,
@@ -994,6 +990,17 @@ class OpenCVCalibrationNode(CalibrationNode):
     def redraw_monocular(self,drawable):
         height = drawable.scrib.shape[0]
         width = drawable.scrib.shape[1]
+        
+        # params for text on image #
+        position = (10,30)
+        font = cv2.FONT_HERSHEY_SIMPLEX
+        font_scale = 1
+        color = (0,0,255)
+        thickness = 2
+        text = f"{drawable.scrib.shape[1]}X{drawable.scrib.shape[0]}"
+        
+        cv2.putText(drawable.scrib,text,position,font,font_scale,color,thickness,cv2.LINE_AA)
+        ############################
         
         display = numpy.zeros((max(480,height),width+100,3),dtype = numpy.uint8)
         display[0:height , 0:width , :] = drawable.scrib

@@ -13,18 +13,7 @@ class Camera:
         while True:
             if self._calib_obj.queue_display.qsize() > 0:
                 frame = self._calib_obj.queue_display.get()
-                
-                # params for text on image #
-                position = (10,30)
-                font = cv2.FONT_HERSHEY_SIMPLEX
-                font_scale = 1
-                color = (0,0,255)
-                thickness = 2
-                text = f"{frame.shape[1]}X{frame.shape[0]}"
-                
-                cv2.putText(frame,text,position,font,font_scale,color,thickness,cv2.LINE_AA)
-                ############################
-                
+                                
                 ret, buffer = cv2.imencode('.jpg', frame, self.encode_param)
                 frame = buffer.tobytes()
                 yield (b'--frame\r\n'

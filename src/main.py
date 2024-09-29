@@ -72,7 +72,15 @@ class CamCalibrator(CamContext):
                             # self.flask_app, self.flask_thread = start_webcam_app(cam_dev)
                             
                             if self.calib_obj == None:
-                                self.calib_obj = OpenCVCalibrationNode([ChessboardInfo(6,4,0.04)],
+                                # self.calib_obj = OpenCVCalibrationNode([ChessboardInfo(6,4,0.04)],
+                                #                                       0,
+                                #                                       0,
+                                #                                       checkerboard_flags = cv2.CALIB_CB_FAST_CHECK,
+                                #                                       max_chessboard_speed = -1.0,
+                                #                                       queue_size = 1,
+                                #                                       cam_index = cam_dev)
+                                
+                                self.calib_obj = OpenCVCalibrationNode([ChessboardInfo(4,4,0.25)],
                                                                       0,
                                                                       0,
                                                                       checkerboard_flags = cv2.CALIB_CB_FAST_CHECK,
