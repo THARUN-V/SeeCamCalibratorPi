@@ -352,7 +352,7 @@ class Calibrator():
             scrib = cv2.resize(img,(int(width/scale),int(height/scale)))
         else:
             scrib = img 
-            
+                
         # Due to rounding, actual horizontal/vertical scaling may differ slightly
         x_scale = float(width) / scrib.shape[1]
         y_scale = float(height) / scrib.shape[0]
@@ -750,7 +750,7 @@ class MonoCalibrator(Calibrator):
         rv.scrib = scrib 
         rv.params = self.compute_goodenough()
         rv.linear_error = linear_error
-        
+    
         return rv
     
     def do_calibration(self,dump = False):
@@ -865,10 +865,10 @@ class CalibrationNode(GetParams):
         # cap = cv2.VideoCapture("/dev/video2")
         cap = cv2.VideoCapture(self._cam_index)
         
-        # cap.set(cv2.CAP_PROP_FRAME_WIDTH,self.img_w)
-        # cap.set(cv2.CAP_PROP_FRAME_HEIGHT,self.img_h)
-        # cap.set(cv2.CAP_PROP_BUFFERSIZE,1)
-        # cap.set(cv2.CAP_PROP_FPS,15)
+        cap.set(cv2.CAP_PROP_FRAME_WIDTH,self.img_w)
+        cap.set(cv2.CAP_PROP_FRAME_HEIGHT,self.img_h)
+        cap.set(cv2.CAP_PROP_BUFFERSIZE,1)
+        cap.set(cv2.CAP_PROP_FPS,15)
         
         while cap.isOpened():
             ret , frame = cap.read()
