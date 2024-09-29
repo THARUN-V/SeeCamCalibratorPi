@@ -929,8 +929,8 @@ class OpenCVCalibrationNode(CalibrationNode):
         return cv2.getTextSize(text,cls.FONT_FACE,cls.FONT_SCALE,cls.FONT_THICKNESS)[0]
     
     
-    def on_mouse(self,event,x,y,flags,param):
-        if event == cv2.EVENT_LBUTTONDOWN and self.displaywidth < x:
+    def on_mouse(self,x,y):
+        if self.displaywidth < x:
             if self.c.goodenough:
                 if 180 <= y < 280:
                     print("***** Calibrating ********")
@@ -938,6 +938,7 @@ class OpenCVCalibrationNode(CalibrationNode):
                     self.buttons(self._last_display)
                     self.queue_display.put(self._last_display)
             if self.c.calibrated:
+                print("========= Calibrated =============")
                 if 280 <= y < 300:
                     self.c.do_save()
                 elif 380 <= y < 400:

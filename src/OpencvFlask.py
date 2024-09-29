@@ -71,6 +71,9 @@ class WebcamApp:
         x = data.get('x')
         y = data.get('y')
         print(f"Mouse clicked at: ({x}, {y})")
+        
+        self.camera._calib_obj.on_mouse(x,y)
+        
         return jsonify({"status": "success", "x": x, "y": y})
 
     def shutdown(self):
