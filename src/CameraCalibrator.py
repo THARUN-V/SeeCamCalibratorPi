@@ -834,6 +834,8 @@ class CalibrationNode(GetParams):
                  queue_size = 1,
                  cam_index = 0):
         
+        GetParams.__init__(self)
+        
         self._boards = boards
         self._calib_flags = flags 
         self._fisheye_calib_flags = fisheye_flags
@@ -862,6 +864,12 @@ class CalibrationNode(GetParams):
     def queue_monocular(self):
         # cap = cv2.VideoCapture("/dev/video2")
         cap = cv2.VideoCapture(self._cam_index)
+        
+        # cap.set(cv2.CAP_PROP_FRAME_WIDTH,self.img_w)
+        # cap.set(cv2.CAP_PROP_FRAME_HEIGHT,self.img_h)
+        # cap.set(cv2.CAP_PROP_BUFFERSIZE,1)
+        # cap.set(cv2.CAP_PROP_FPS,15)
+        
         while cap.isOpened():
             ret , frame = cap.read()
             if ret:
