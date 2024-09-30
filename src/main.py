@@ -5,6 +5,7 @@ from CamContext import *
 from OpencvFlask import *
 from CameraCalibrator import *
 from GetParams import *
+import json
 
 class CamCalibrator(CamContext,GetParams):
     
@@ -25,6 +26,11 @@ class CamCalibrator(CamContext,GetParams):
         
         self.see_cam_dict = {i: [i, cam.serial_number, cam.camera_index, "NotCalibrated"] for i, cam in enumerate(self.see_cams)}
         
+        
+        ###### dict to store the calibrartion result #######
+        self.calib_result = {cam.serial_number : {param : None for param in ["model","img_w","img_h","D","K","P","R"]} 
+                             for cam in self.see_cams}
+        
         print("====================================== Cameras Detected ================================================")
         self.print_table()
         
@@ -35,6 +41,34 @@ class CamCalibrator(CamContext,GetParams):
         
         self.calib_obj = None
         
+        
+        self.save_calib_data_thread = threading.Thread(target = self.save_calib_data)
+        self.save_calib_data_thread.daemon = True
+        self.save_calib_data_thread.start()
+        
+    def save_calib_data(self):
+        
+        while True:
+            if self.calib_obj != None and self.calib_obj.c != None:
+                if self.calib_obj.c.calibrated:
+                    ## get serial number from cam_dev for writing data
+                    cam_serial_num = {cam.camera_index:cam.serial_number for cam in self.see_cams}[self.cam_dev]
+                    # update the result in cam_res_dict
+                    self.calib_result[cam_serial_num]["model"] = {0:"PINHOLE",1:"FISHEYE"}[self.calib_obj.c.camera_model.value]
+                    self.calib_result[cam_serial_num]["img_w"] = self.calib_obj.c.size[0]
+                    self.calib_result[cam_serial_num]["img_h"] = self.calib_obj.c.size[1]
+                    self.calib_result[cam_serial_num]["D"] = self.calib_obj.c.distortion.ravel()
+                    self.calib_result[cam_serial_num]["K"] = self.calib_obj.c.intrinsics
+                    self.calib_result[cam_serial_num]["P"] = self.calib_obj.c.P
+                    self.calib_result[cam_serial_num]["R"] = self.calib_obj.c.R
+                    
+                    # print(json.dumps(self.calib_result,indent = 4))
+                    print(self.calib_result)
+                    
+            # else:
+            #     print(json.dumps(self.calib_result,indent = 4))
+                
+                       
     def update_table(self):
         # Update the table with the latest camera information
         for k, v in self.see_cam_dict.items():
@@ -59,16 +93,16 @@ class CamCalibrator(CamContext,GetParams):
             while not self.all_cameras_calibrated:
                 try:
                     # Prompt for user input inside the try-except block
-                    cam_dev = input("Enter SlNo of Camera: ")
+                    self.cam_dev = input("Enter SlNo of Camera: ")
 
                     # Check if input is a valid integer
-                    if cam_dev.isdigit():
-                        cam_dev = int(cam_dev)
+                    if self.cam_dev.isdigit():
+                        self.cam_dev = int(self.cam_dev)
 
                         # Check if the entered SlNo is in the dictionary
-                        if cam_dev in self.see_cam_dict:
+                        if self.cam_dev in self.see_cam_dict:
                             # Get the camera index from the dictionary
-                            cam_dev = self.see_cam_dict[cam_dev][2]
+                            self.cam_dev = self.see_cam_dict[self.cam_dev][2]
 
                             # Run the web app to display the camera feed
                             # self.flask_app, self.flask_thread = start_webcam_app(cam_dev)
@@ -96,10 +130,12 @@ class CamCalibrator(CamContext,GetParams):
                                                                       checkerboard_flags = cv2.CALIB_CB_FAST_CHECK,
                                                                       max_chessboard_speed = -1.0,
                                                                       queue_size = 1,
-                                                                      cam_index = cam_dev)
+                                                                      cam_index = self.cam_dev)
                                 
                                 # use calib_obj and get the image from queue and strem img to webpage
                                 self.flask_app, self.flask_thread = start_webcam_app(self.calib_obj)
+                                
+                            
                             
                         else:
                             print("Invalid SlNo. Please try again.")
