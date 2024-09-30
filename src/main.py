@@ -32,6 +32,7 @@ class CamCalibrator(CamContext,GetParams):
                              for cam in self.see_cams}
         
         print("====================================== Cameras Detected ================================================")
+        self.sl_no = None
         self.print_table()
         
         self.all_cameras_calibrated = False
@@ -62,8 +63,14 @@ class CamCalibrator(CamContext,GetParams):
                     self.calib_result[cam_serial_num]["P"] = self.calib_obj.c.P
                     self.calib_result[cam_serial_num]["R"] = self.calib_obj.c.R
                     
-                    # print(json.dumps(self.calib_result,indent = 4))
-                    print(self.calib_result)
+                    
+                    # print(self.calib_result)
+                    
+                    # update pretty table to print and indicate calibration status
+                    self.print_table()
+                    
+                    exit()
+                    
                     
             # else:
             #     print(json.dumps(self.calib_result,indent = 4))
@@ -71,8 +78,17 @@ class CamCalibrator(CamContext,GetParams):
                        
     def update_table(self):
         # Update the table with the latest camera information
-        for k, v in self.see_cam_dict.items():
-            self.table.add_row(v)
+        if self.sl_no != None:
+            self.table.clear_rows()
+            for k, v in self.see_cam_dict.items():
+                if k == int(self.sl_no):
+                    v[3] = "Calibrated"
+                    self.table.add_row(v)
+                else:
+                    self.table.add_row(v)
+        else:        
+            for k, v in self.see_cam_dict.items():
+                self.table.add_row(v)
     
     def print_table(self):
         # Print the current table with camera information
@@ -93,11 +109,11 @@ class CamCalibrator(CamContext,GetParams):
             while not self.all_cameras_calibrated:
                 try:
                     # Prompt for user input inside the try-except block
-                    self.cam_dev = input("Enter SlNo of Camera: ")
+                    self.sl_no = input("Enter SlNo of Camera: ")
 
                     # Check if input is a valid integer
-                    if self.cam_dev.isdigit():
-                        self.cam_dev = int(self.cam_dev)
+                    if self.sl_no.isdigit():
+                        self.cam_dev = int(self.sl_no)
 
                         # Check if the entered SlNo is in the dictionary
                         if self.cam_dev in self.see_cam_dict:
