@@ -42,6 +42,9 @@ class CamCalibrator(CamContext,GetParams):
         
         self.calib_obj = None
         
+        ### list to keep track of calibrated cameras ###
+        self.calibrated_cams = list()
+        
         
         self.save_calib_data_thread = threading.Thread(target = self.save_calib_data)
         self.save_calib_data_thread.daemon = True
@@ -79,13 +82,17 @@ class CamCalibrator(CamContext,GetParams):
     def update_table(self):
         # Update the table with the latest camera information
         if self.sl_no != None:
+            # self.table.clear_rows()
+            # for k, v in self.see_cam_dict.items():
+            #     if k == int(self.sl_no):
+            #         v[3] = "Calibrated"
+            #         self.table.add_row(v)
+            #     else:
+            #         self.table.add_row(v)
+            self.see_cam_dict[self.sl_no][3] = "Calibrated"
             self.table.clear_rows()
             for k, v in self.see_cam_dict.items():
-                if k == int(self.sl_no):
-                    v[3] = "Calibrated"
-                    self.table.add_row(v)
-                else:
-                    self.table.add_row(v)
+                self.table.add_row(v)
         else:        
             for k, v in self.see_cam_dict.items():
                 self.table.add_row(v)
@@ -109,10 +116,21 @@ class CamCalibrator(CamContext,GetParams):
             while not self.all_cameras_calibrated:
                 try:
                     # Prompt for user input inside the try-except block
-                    self.sl_no = input("Enter SlNo of Camera: ")
-
+                    # self.sl_no = input("Enter SlNo of Camera: ")
+                    
+                    # get the index of camera and open 
+                    for sl_no in self.see_cam_dict.keys():
+                        if sl_no not in self.calibrated_cams:
+                            self.sl_no = sl_no
+                            self.calibrated_cams.append(self.sl_no)
+                            break
+                        elif len(self.calibrated_cams) == len(self.see_cam_dict):
+                            self.all_cameras_calibrated = True
+                    
+                    # print(f"######### opening cam : {self.sl_no} ##############") 
+                    
                     # Check if input is a valid integer
-                    if self.sl_no.isdigit():
+                    if self.sl_no != None:
                         self.cam_dev = int(self.sl_no)
 
                         # Check if the entered SlNo is in the dictionary
@@ -120,26 +138,7 @@ class CamCalibrator(CamContext,GetParams):
                             # Get the camera index from the dictionary
                             self.cam_dev = self.see_cam_dict[self.cam_dev][2]
 
-                            # Run the web app to display the camera feed
-                            # self.flask_app, self.flask_thread = start_webcam_app(cam_dev)
-                            
-                            if self.calib_obj == None:
-                                # self.calib_obj = OpenCVCalibrationNode([ChessboardInfo(6,4,0.04)],
-                                #                                       0,
-                                #                                       0,
-                                #                                       checkerboard_flags = cv2.CALIB_CB_FAST_CHECK,
-                                #                                       max_chessboard_speed = -1.0,
-                                #                                       queue_size = 1,
-                                #                                       cam_index = cam_dev)
-                                
-                                # self.calib_obj = OpenCVCalibrationNode([ChessboardInfo(4,4,0.25)],
-                                #                                       0,
-                                #                                       0,
-                                #                                       checkerboard_flags = cv2.CALIB_CB_FAST_CHECK,
-                                #                                       max_chessboard_speed = -1.0,
-                                #                                       queue_size = 1,
-                                #                                       cam_index = cam_dev)
-                                
+                            if self.calib_obj == None:                                
                                 self.calib_obj = OpenCVCalibrationNode([ChessboardInfo(self.args.chessboard_w,self.args.chessboard_h,self.args.chessboard_size)],
                                                                       0,
                                                                       0,
