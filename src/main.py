@@ -46,9 +46,9 @@ class CamCalibrator(CamContext,GetParams):
         self.calibrated_cams = list()
         
         
-        self.save_calib_data_thread = threading.Thread(target = self.save_calib_data)
-        self.save_calib_data_thread.daemon = True
-        self.save_calib_data_thread.start()
+        # self.save_calib_data_thread = threading.Thread(target = self.save_calib_data)
+        # self.save_calib_data_thread.daemon = True
+        # self.save_calib_data_thread.start()
         
     def save_calib_data(self):
         
@@ -70,10 +70,7 @@ class CamCalibrator(CamContext,GetParams):
                     # print(self.calib_result)
                     
                     # update pretty table to print and indicate calibration status
-                    self.print_table()
-                    
-                    exit()
-                    
+                    self.print_table()    
                     
             # else:
             #     print(json.dumps(self.calib_result,indent = 4))
@@ -150,6 +147,18 @@ class CamCalibrator(CamContext,GetParams):
                                 # use calib_obj and get the image from queue and strem img to webpage
                                 self.flask_app, self.flask_thread = start_webcam_app(self.calib_obj)
                                 
+                            if self.calib_obj != None and self.calib_obj.c.calibrated:
+                            
+                                # print("########## Switching To Next Camera ############")
+                                # del(self.calib_obj)
+                                # self.calib_obj = None
+                                
+                                # stop_webcam_app(self.flask_app)
+                                # self.flask_thread.join()
+                                # self.flask_app , self.flask_thread = None , None
+                                
+                                print("-----------------------------------------------")
+                            
                             
                             
                         else:
@@ -165,12 +174,42 @@ class CamCalibrator(CamContext,GetParams):
 if __name__ == "__main__":
     # Create an instance of the CamCalibrator and run the main method
     ob = CamCalibrator()
-    ob.main()
+    # ob.main()
     
-    # try:
-    #     while ob.flask_thread.is_alive():
-    #         ob.flask_thread.join(1)  # Keep the main thread alive while Flask runs
-    # except KeyboardInterrupt:
-    #     print("Shutting down server...")
-    #     stop_webcam_app(ob.flask_app)
-    #     ob.flask_thread.join()
+    while not ob.all_cameras_calibrated:
+        if ob.calib_obj == None:
+            # get the index of camera and open 
+            for sl_no in ob.see_cam_dict.keys():
+                if sl_no not in ob.calibrated_cams:
+                    ob.sl_no = sl_no
+                    ob.calibrated_cams.append(ob.sl_no)
+                    break
+                elif len(ob.calibrated_cams) == len(ob.see_cam_dict):
+                    ob.all_cameras_calibrated = True
+                    
+            ob.cam_dev = int(ob.sl_no)
+            
+            ob.cam_dev = ob.see_cam_dict[ob.cam_dev][2]
+            
+            ob.calib_obj = OpenCVCalibrationNode([ChessboardInfo(ob.args.chessboard_w,ob.args.chessboard_h,ob.args.chessboard_size)],
+                                                                      0,
+                                                                      0,
+                                                                      checkerboard_flags = cv2.CALIB_CB_FAST_CHECK,
+                                                                      max_chessboard_speed = -1.0,
+                                                                      queue_size = 1,
+                                                                      cam_index = ob.cam_dev)
+                                
+            # use calib_obj and get the image from queue and strem img to webpage
+            ob.flask_app, ob.flask_thread = start_webcam_app(ob.calib_obj)
+            
+            
+        if ob.calib_obj.c != None:
+            if ob.calib_obj.c.calibrated:
+                if  380 < ob.flask_app.y < 480:
+                    
+                    ob.calib_obj.cap.release()
+                    del(ob.calib_obj)
+                    ob.calib_obj = None 
+                    
+                    stop_webcam_app(ob.flask_app)
+                    ob.flask_thread.join()

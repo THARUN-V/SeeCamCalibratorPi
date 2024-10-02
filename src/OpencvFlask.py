@@ -68,13 +68,16 @@ class WebcamApp:
 
     def mouse_click(self):
         data = request.json
-        x = data.get('x')
-        y = data.get('y')
-        print(f"Mouse clicked at: ({x}, {y})")
+        self.x = data.get('x')
+        self.y = data.get('y')
+        print(f"Mouse clicked at: ({self.x}, {self.y})")
         
-        self.camera._calib_obj.on_mouse(x,y)
+        self.camera._calib_obj.on_mouse(self.x,self.y)
         
-        return jsonify({"status": "success", "x": x, "y": y})
+        # if 380 < y < 480:
+        #     del(self.camera._calib_obj)
+        
+        return jsonify({"status": "success", "x": self.x, "y": self.y})
 
     def shutdown(self):
         func = request.environ.get('werkzeug.server.shutdown')

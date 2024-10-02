@@ -849,13 +849,13 @@ class CalibrationNode(GetParams):
         
         self._last_display = None
                 
-        cam_cap_th = threading.Thread(target = self.queue_monocular)
-        cam_cap_th.daemon = True
-        cam_cap_th.start()
+        self.cam_cap_th = threading.Thread(target = self.queue_monocular)
+        self.cam_cap_th.daemon = True
+        self.cam_cap_th.start()
         
-        mth = ConsumerThread(self.q_mono,self.handle_monocular)
-        mth.daemon = True
-        mth.start()
+        self.mth = ConsumerThread(self.q_mono,self.handle_monocular)
+        self.mth.daemon = True
+        self.mth.start()
         
     def redraw_monocular(self,*args):
         pass
@@ -863,15 +863,15 @@ class CalibrationNode(GetParams):
     # need to modify this function to fetch image from camer capture class
     def queue_monocular(self):
         # cap = cv2.VideoCapture("/dev/video2")
-        cap = cv2.VideoCapture(self._cam_index)
+        self.cap = cv2.VideoCapture(self._cam_index)
         
-        cap.set(cv2.CAP_PROP_FRAME_WIDTH,self.img_w)
-        cap.set(cv2.CAP_PROP_FRAME_HEIGHT,self.img_h)
-        cap.set(cv2.CAP_PROP_BUFFERSIZE,1)
-        cap.set(cv2.CAP_PROP_FPS,15)
+        self.cap.set(cv2.CAP_PROP_FRAME_WIDTH,self.img_w)
+        self.cap.set(cv2.CAP_PROP_FRAME_HEIGHT,self.img_h)
+        self.cap.set(cv2.CAP_PROP_BUFFERSIZE,1)
+        self.cap.set(cv2.CAP_PROP_FPS,15)
         
-        while cap.isOpened():
-            ret , frame = cap.read()
+        while self.cap.isOpened():
+            ret , frame = self.cap.read()
             if ret:
                 self.q_mono.put(frame)
         
@@ -903,9 +903,9 @@ class OpenCVCalibrationNode(CalibrationNode):
         self.queue_display = BufferQueue(maxsize = 1)
         # self.initWindow()
         
-        cv_thread = threading.Thread(target = self.spin)
-        cv_thread.daemon = True
-        cv_thread.start()
+        self.cv_thread = threading.Thread(target = self.spin)
+        self.cv_thread.daemon = True
+        self.cv_thread.start()
         
         
     def spin(self):
@@ -949,8 +949,8 @@ class OpenCVCalibrationNode(CalibrationNode):
                 print("========= Calibrated =============")
                 if 280 <= y < 300:
                     self.c.do_save()
-                elif 380 <= y < 400:
-                    pass
+                elif 380 <= y < 480:
+                    print("@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@")
                 
     def on_model_change(self,model_select_val):
         if self.c == None:
