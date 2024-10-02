@@ -38,10 +38,10 @@ class WebcamApp:
 
     def index(self):
         return '''
-            <h1>Webcam Feed</h1>
+            <h1>---------- Camera Calibration ------------</h1>
             <img id="webcam_image" src="/video_feed" />
-            <h2>Click on the image to get the coordinates</h2>
-            <p>Click anywhere on the image to capture the mouse coordinates.</p>
+            <h2>Click on Calibrate button when available to start calibration</h2>
+            <h2>Click on Next Button to proceed with next camera</h2>
             <script>
                 document.getElementById("webcam_image").addEventListener("click", function(event) {
                     var rect = event.target.getBoundingClientRect();
@@ -70,12 +70,9 @@ class WebcamApp:
         data = request.json
         self.x = data.get('x')
         self.y = data.get('y')
-        print(f"Mouse clicked at: ({self.x}, {self.y})")
+        # print(f"Mouse clicked at: ({self.x}, {self.y})")
         
         self.camera._calib_obj.on_mouse(self.x,self.y)
-        
-        # if 380 < y < 480:
-        #     del(self.camera._calib_obj)
         
         return jsonify({"status": "success", "x": self.x, "y": self.y})
 
