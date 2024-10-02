@@ -184,8 +184,8 @@ if __name__ == "__main__":
                     ob.sl_no = sl_no
                     ob.calibrated_cams.append(ob.sl_no)
                     break
-                elif len(ob.calibrated_cams) == len(ob.see_cam_dict):
-                    ob.all_cameras_calibrated = True
+                # elif len(ob.calibrated_cams) == len(ob.see_cam_dict):
+                #     ob.all_cameras_calibrated = True
                     
             ob.cam_dev = int(ob.sl_no)
             
@@ -206,6 +206,7 @@ if __name__ == "__main__":
         if ob.calib_obj.c != None:
             if ob.calib_obj.c.calibrated:
                 if  380 < ob.flask_app.y < 480:
+                    ob.print_table()
                     
                     ob.calib_obj.cap.release()
                     del(ob.calib_obj)
@@ -213,3 +214,6 @@ if __name__ == "__main__":
                     
                     stop_webcam_app(ob.flask_app)
                     ob.flask_thread.join()
+                    
+                    if len(ob.calibrated_cams) == len(ob.see_cam_dict):
+                        ob.all_cameras_calibrated = True
