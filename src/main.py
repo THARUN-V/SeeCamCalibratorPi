@@ -106,7 +106,8 @@ if __name__ == "__main__":
                                                                       checkerboard_flags = cv2.CALIB_CB_FAST_CHECK,
                                                                       max_chessboard_speed = -1.0,
                                                                       queue_size = 1,
-                                                                      cam_index = ob.cam_dev)
+                                                                      cam_index = ob.cam_dev,
+                                                                      calib_status = True if len(ob.calibrated_cams) == len(ob.see_cam_dict) else False)
                                 
             # use calib_obj and get the image from queue and strem img to webpage
             ob.flask_app, ob.flask_thread = start_webcam_app(ob.calib_obj)

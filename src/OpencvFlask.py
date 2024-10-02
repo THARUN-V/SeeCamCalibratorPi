@@ -42,6 +42,7 @@ class WebcamApp:
             <img id="webcam_image" src="/video_feed" />
             <h2>Click on Calibrate button when available to start calibration</h2>
             <h2>Click on Next Button to proceed with next camera</h2>
+            <h2>Click on Save Button to save the calibration results</h2>
             <script>
                 document.getElementById("webcam_image").addEventListener("click", function(event) {
                     var rect = event.target.getBoundingClientRect();

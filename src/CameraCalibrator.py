@@ -832,7 +832,8 @@ class CalibrationNode(GetParams):
                  checkerboard_flags = 0,
                  max_chessboard_speed = -1,
                  queue_size = 1,
-                 cam_index = 0):
+                 cam_index = 0,
+                 calib_status = None):
         
         GetParams.__init__(self)
         
@@ -848,6 +849,8 @@ class CalibrationNode(GetParams):
         self.c = None 
         
         self._last_display = None
+        
+        self._calib_status = calib_status
                 
         self.cam_cap_th = threading.Thread(target = self.queue_monocular)
         self.cam_cap_th.daemon = True
@@ -901,7 +904,6 @@ class OpenCVCalibrationNode(CalibrationNode):
         CalibrationNode.__init__(self,*args,**kwargs)
         
         self.queue_display = BufferQueue(maxsize = 1)
-        # self.initWindow()
         
         self.cv_thread = threading.Thread(target = self.spin)
         self.cv_thread.daemon = True
@@ -981,7 +983,7 @@ class OpenCVCalibrationNode(CalibrationNode):
         x = self.displaywidth
         self.button(display[180:280,x:x+100],"CALIBRATE",self.c.goodenough)
         # self.button(display[280:380,x:x+100],"SAVE",self.c.calibrated)
-        self.button(display[380:480,x:x+100],"NEXT",self.c.calibrated)
+        self.button(display[380:480,x:x+100],"SAVE" if self._calib_status else "NEXT",self.c.calibrated)
         
     def y(self,i):
         """
